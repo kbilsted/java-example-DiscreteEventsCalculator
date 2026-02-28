@@ -2,6 +2,7 @@ package org.example;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 
 public record DocumentStore(
         List<Person> personer,
@@ -9,6 +10,6 @@ public record DocumentStore(
     public  static int GlobalId=1;
 
     public DocumentStore(){
-        this(List.of(), new HashMap<>());
+        this(new ArrayList<>(), new HashMap<>());
     }
 }
