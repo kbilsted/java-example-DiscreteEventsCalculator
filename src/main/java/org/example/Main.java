@@ -1,18 +1,35 @@
 package org.example;
 
-/**
- * Standard Java implementation af Main uden preview-features.
- */
+import org.example.eventstream.CalculationEngine;
+import org.example.eventstream.Event;
+import org.example.eventstream.EventInput;
+
+import java.time.Instant;
+import java.time.LocalDate;
+
 public class Main {
-    // Standard entry point kræver String[] args og public access
     public static void main(String[] args) {
+        CalculationEngine engine = new CalculationEngine();
 
-        // System.out er en PrintStream instans. Det er standarden for konsol-output.
-        System.out.println("Hello and welcome!");
+        Event event = new Event(
+                1L,
+                "Salary",
+                "person-1",
+                LocalDate.of(2026, 1, 31),
+                Instant.parse("2026-01-01T00:00:00Z")
+        );
 
-        for (int i = 1; i <= 5; i++) {
-            // Vi kalder metoden på PrintStream objektet direkte
-            System.out.println("i = " + i);
-        }
+        engine.addEvent(event);
+        engine.addEventInput(new EventInput(
+                10L,
+                1L,
+                LocalDate.of(2026, 1, 31),
+                1000,
+                1L,
+                Instant.parse("2026-01-15T10:00:00Z")
+        ));
+
+        int result = engine.getResultsForEvent(1L).get(0).getResultAmount();
+        System.out.println("Latest result: " + result);
     }
 }
