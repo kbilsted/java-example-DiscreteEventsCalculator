@@ -13,10 +13,27 @@ Disse regler gælder for al fremtidig AI-assisteret kodegenerering/ændring.
 2. Hvis der er konflikt, stop og foreslå minimal merge-strategi.
 3. Bevar kommentarer/notes medmindre de er åbenlyst forældede og aftalt.
 
-## Beskyttede områder
-1. Ingen overskrivning af `manual/` (hele mappen er read-only for generatoren).
-2. Ingen omskrivning af migrations/historikfiler uden eksplicit tilladelse.
-3. Ingen automatisk ændring af CI/CD eller secrets-konfiguration.
+
+## Ejerskab af kode (must-have)
+
+### AI-owned (må oprettes/overskrives)
+- `src/generated/**`
+    - Alt her må generatoren oprette, ændre og overskrive.
+    - Regenerering skal så vidt muligt kun påvirke `src/generated/**`.
+    - Hvis noget kræver speciallogik, skal det lægges i `src/manual/**` og ikke i generated.
+
+### Human-owned (må IKKE ændres)
+- .git mappen må ALDRIG ændres!!
+- `src/manual/**` (hele mappen er read-only for generatoren)
+- `manual/**` (hvis den findes)
+- migrations/historikfiler (uden eksplicit tilladelse)
+- CI/CD og secrets-konfiguration (uden eksplicit tilladelse)
+- alle filer markeret med `DO NOT TOUCH`
+
+
+## Ændringer udenfor src/generated
+Generatoren må kun ændre filer udenfor `src/generated/**` når det er nødvendigt for integration
+(fx registrere routes/DI/export), og kun som **minimale patches** (ingen mass rewrite, ingen reformat).
 
 ## Kvalitetskrav
 1. Tilføj/opdatér tests kun hvor adfærden ændres.
