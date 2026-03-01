@@ -25,10 +25,10 @@ class DocumentStoreTest {
 
     @Test
     void kanInstantiereDocumentStoreOgIndsaettePersonOgIndbetalingMedInput() {
-        bffApi.OpretHændelseBetaling(person, 100, Instant.parse("2026-01-01T00:00:00Z"));
+        bffApi.OpretHændelseBetaling(person, Instant.parse("2026-01-01T00:00:00Z"), 100);
 
         assertEquals(1, store.personer().size());
         assertEquals("indbetaling", store.tidslinier().get(person.id()).hændelser().getFirst().navn());
-        assertEquals("100", store.tidslinier().get(person.id()).hændelser().getFirst().generationer().getFirst().input().inputs().get("beløb"));
+        assertEquals(100, store.tidslinier().get(person.id()).hændelser().getFirst().generationer().getFirst().input().inputs().get("beløb"));
     }
 }

@@ -5,6 +5,7 @@ import org.storage.DocumentStore;
 
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.Map;
 
 public class BffApi {
     private final DocumentStore store;
@@ -23,15 +24,12 @@ public class BffApi {
         return person;
     }
 
-    public Hændelse OpretHændelseBetaling(Person person, int beløb, Instant valør) {
-        HashMap<String, Object> inputMap = new HashMap<>();
-        inputMap.put("beløb", String.valueOf(beløb));
-        HændelseInput input = new HændelseInput(DocumentStore.GlobalId++, Instant.now(), inputMap);
-
+    public Hændelse OpretHændelseBetaling(Person person, Instant valør, int beløb) {
         Hændelse hændelse = new Hændelse("indbetaling", valør, Instant.now());
-        hændelse.AddInput(input);
+        HændelseInput input = new HændelseInput(DocumentStore.GlobalId++, Instant.now(),  new HashMap<>(Map.of("beløb", beløb)));
 
-        store.tidslinier().get(person.id()).hændelser().add(hændelse);
+        Tidslinie tidslinie = store.tidslinier().get(person.id());
+        tidslinie.Add(hændelse, input);
 
         return hændelse;
     }
