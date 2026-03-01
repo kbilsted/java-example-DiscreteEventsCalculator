@@ -1,9 +1,9 @@
 package org.models;
 
-import org.storage.DocumentStore;
+import org.storage.GlobalId;
 
 public record Person(Integer id, String navn) {
     public Person(String navn) {
-        this (DocumentStore.GlobalId++, navn);
+        this(GlobalId.next(), navn);
     }
 }

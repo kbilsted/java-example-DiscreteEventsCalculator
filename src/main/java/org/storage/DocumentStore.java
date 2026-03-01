@@ -21,9 +21,6 @@ import java.util.List;
 public record DocumentStore(
         List<Person> personer,
         HashMap<Integer, Tidslinie> tidslinier) {
-
-    public static int GlobalId = 1;
-
     private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
             .addModule(new JavaTimeModule())
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
@@ -47,7 +44,7 @@ public record DocumentStore(
 
             serialized.put("personer", toJson(personer));
             serialized.put("tidslinier", toJson(tidslinier));
-            serialized.put("GlobalId", toJson(GlobalId));
+            serialized.put("GlobalId", toJson(GlobalId.current()));
 
             for (var entry : serialized.entrySet()) {
                 Path file = targetDir.resolve(entry.getKey() + ".json");

@@ -2,6 +2,7 @@ package org.bffs;
 
 import org.models.*;
 import org.storage.DocumentStore;
+import org.storage.GlobalId;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -15,7 +16,7 @@ public class BffApi {
     }
 
     public Person OpretPerson(String navn){
-        var person = new Person(DocumentStore.GlobalId++, navn);
+        var person = new Person(GlobalId.next(), navn);
         store.personer().add(person);
 
         var tidslinie = new Tidslinie();
@@ -26,7 +27,7 @@ public class BffApi {
 
     public Hændelse OpretHændelseBetaling(Person person, Instant valør, int beløb) {
         Hændelse hændelse = new Hændelse("indbetaling", valør, Instant.now());
-        HændelseInput input = new HændelseInput(DocumentStore.GlobalId++, Instant.now(),  new HashMap<>(Map.of("beløb", beløb)));
+        HændelseInput input = new HændelseInput(GlobalId.next(), Instant.now(),  new HashMap<>(Map.of("beløb", beløb)));
 
         Tidslinie tidslinie = store.tidslinier().get(person.id());
         tidslinie.Add(hændelse, input);

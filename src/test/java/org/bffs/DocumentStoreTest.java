@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.models.Person;
 import org.storage.DocumentStore;
+import org.storage.GlobalId;
 
 import java.time.Instant;
 
@@ -16,7 +17,7 @@ class DocumentStoreTest {
 
     @BeforeEach
     void setUp() {
-        DocumentStore.GlobalId = 1;
+        GlobalId.reset(1);
         store = new DocumentStore();
         bffApi = new BffApi(store);
 
