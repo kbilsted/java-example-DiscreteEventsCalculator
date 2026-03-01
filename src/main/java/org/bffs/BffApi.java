@@ -1,12 +1,14 @@
-package org.example;
+package org.bffs;
+
+import org.models.*;
 
 import java.time.Instant;
 import java.util.HashMap;
 
-public class Logik {
+public class BffApi {
     private final DocumentStore store;
 
-    public Logik(DocumentStore store) {
+    public BffApi(DocumentStore store) {
         this.store = store;
     }
 

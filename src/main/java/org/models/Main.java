@@ -1,4 +1,4 @@
-package org.example;
+package org.models;
 
 /**
  * Standard Java implementation af Main uden preview-features.

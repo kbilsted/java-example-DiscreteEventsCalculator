@@ -1,4 +1,4 @@
-package org.example;
+package org.models;
 
 public record Person(Integer id, String navn) {
     public Person(String navn) {
