@@ -8,10 +8,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public record Event(int eventId, String name, Instant valueTime, Instant realTime,
+public record Event(int eventId, String name, Instant valueTime, Instant createTime,
                     List<CalculationGeneration> generations) {
-    public Event(String name, Instant valueTime, Instant realTime) {
-        this(GlobalId.next(), name, valueTime, realTime, new ArrayList<>());
+    public Event(String name, Instant valueTime, Instant createTime) {
+        this(GlobalId.next(), name, valueTime, createTime, new ArrayList<>());
     }
 
     public State calculate(State previousState, EventInput input) {
