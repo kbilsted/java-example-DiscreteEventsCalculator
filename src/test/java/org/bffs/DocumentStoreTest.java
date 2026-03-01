@@ -21,15 +21,15 @@ class DocumentStoreTest {
         store = new DocumentStore();
         bffApi = new BffApi(store);
 
-        person = bffApi.OpretPerson("anders and");
+        person = bffApi.createPerson("anders and");
     }
 
     @Test
-    void kanInstantiereDocumentStoreOgIndsaettePersonOgIndbetalingMedInput() {
-        bffApi.OpretHændelseBetaling(person, Instant.parse("2026-01-01T00:00:00Z"), 100);
+    void createsPersonAndPaymentEventWithInput() {
+        bffApi.createPaymentEvent(person, Instant.parse("2026-01-01T00:00:00Z"), 100);
 
-        assertEquals(1, store.personer().size());
-        assertEquals("indbetaling", store.tidslinier().get(person.id()).hændelser().getFirst().navn());
-        assertEquals(100, store.tidslinier().get(person.id()).hændelser().getFirst().generationer().getFirst().input().inputs().get("beløb"));
+        assertEquals(1, store.people().size());
+        assertEquals("payment", store.timelines().get(person.id()).events().getFirst().name());
+        assertEquals(100, store.timelines().get(person.id()).events().getFirst().generations().getFirst().input().inputs().get("amount"));
     }
 }

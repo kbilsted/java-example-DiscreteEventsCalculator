@@ -1,17 +1,17 @@
 package main;
 
 /**
- * Standard Java implementation af Main uden preview-features.
+ * Standard Java implementation of Main without preview features.
  */
 public class Main {
-    // Standard entry point kræver String[] args og public access
+    // Standard entry point requires String[] args and public access
     public static void main(String[] args) {
 
-        // System.out er en PrintStream instans. Det er standarden for konsol-output.
+        // System.out is a PrintStream instance. It is the standard for console output.
         System.out.println("Hello and welcome!");
 
         for (int i = 1; i <= 5; i++) {
-            // Vi kalder metoden på PrintStream objektet direkte
+            // We call the method on the PrintStream object directly
             System.out.println("i = " + i);
         }
     }

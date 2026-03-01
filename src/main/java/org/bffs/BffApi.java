@@ -15,23 +15,23 @@ public class BffApi {
         this.store = store;
     }
 
-    public Person OpretPerson(String navn){
-        var person = new Person(GlobalId.next(), navn);
-        store.personer().add(person);
+    public Person createPerson(String name){
+        var person = new Person(GlobalId.next(), name);
+        store.people().add(person);
 
-        var tidslinie = new Tidslinie();
-        store.tidslinier().put(person.id(), tidslinie);
+        var timeline = new Timeline();
+        store.timelines().put(person.id(), timeline);
 
         return person;
     }
 
-    public Hændelse OpretHændelseBetaling(Person person, Instant valør, int beløb) {
-        Hændelse hændelse = new Hændelse("indbetaling", valør, Instant.now());
-        HændelseInput input = new HændelseInput(GlobalId.next(), Instant.now(),  new HashMap<>(Map.of("beløb", beløb)));
+    public Event createPaymentEvent(Person person, Instant valueTime, int amount) {
+        Event event = new Event("payment", valueTime, Instant.now());
+        EventInput input = new EventInput(GlobalId.next(), Instant.now(),  new HashMap<>(Map.of("amount", amount)));
 
-        Tidslinie tidslinie = store.tidslinier().get(person.id());
-        tidslinie.Add(hændelse, input);
+        Timeline timeline = store.timelines().get(person.id());
+        timeline.add(event, input);
 
-        return hændelse;
+        return event;
     }
 }
