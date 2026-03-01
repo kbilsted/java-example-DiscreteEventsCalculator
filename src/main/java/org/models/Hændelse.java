@@ -1,5 +1,7 @@
 package org.models;
 
+import org.storage.DocumentStore;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.ArrayList;

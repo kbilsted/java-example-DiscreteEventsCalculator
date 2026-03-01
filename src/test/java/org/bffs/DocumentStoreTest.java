@@ -1,8 +1,9 @@
-package org.models;
+package org.bffs;
 
-import org.bffs.BffApi;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.models.Person;
+import org.storage.DocumentStore;
 
 import java.time.Instant;
 
@@ -11,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class DocumentStoreTest {
     DocumentStore store;
     BffApi bffApi;
-Person person;
+    Person person;
 
     @BeforeEach
     void setUp() {
