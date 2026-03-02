@@ -71,4 +71,10 @@ public class Timeline {
                 .mapToInt(x -> x.generations().size())
                 .sum();
     }
+
+    public int countSumHistoricCalculationGenerations() {
+        return historicEvents.stream()
+                .mapToInt(x -> x.generations().size())
+                .sum();
+    }
 }

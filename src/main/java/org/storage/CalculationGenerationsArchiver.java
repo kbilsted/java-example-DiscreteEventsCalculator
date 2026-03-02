@@ -9,7 +9,7 @@ import java.util.List;
 public class CalculationGenerationsArchiver {
     private final DocumentStore store;
 
-    CalculationGenerationsArchiver(DocumentStore store) {
+    public CalculationGenerationsArchiver(DocumentStore store) {
         this.store = store;
     }
 
@@ -24,39 +24,24 @@ public class CalculationGenerationsArchiver {
 
         List<Event> history = timeline.getHistoricEvents();
 
-        // Ensure history has same event order as timeline.
         for (int i = 0; i < timeline.getEvents().size(); i++) {
             var event = timeline.getEvents().get(i);
 
+            // ensure event in history
             if (i >= history.size()) {
                 history.add(copyEventWithoutGenerations(event));
-                continue;
-            }
-
-            if (history.get(i).eventId() != event.eventId()) {
+            } else if (history.get(i).eventId() != event.eventId()) {
                 history.add(i, copyEventWithoutGenerations(event));
             }
-        }
 
-        // Move all but latest generation from timeline to matching history event by same index.
-        for (int i = 0; i < timeline.getEvents().size(); i++) {
-            var event = timeline.getEvents().get(i);
+            // move all but latest generations
             var historyEvent = history.get(i);
             var generations = event.generations();
-            if (generations.size() <= 1) {
-                continue;
-            }
-
-            if (historyEvent.eventId() != event.eventId()) {
-                throw new RuntimeException("history/timeline event order mismatch at index " + i);
-            }
-
             var latest = generations.get(generations.size() - 1);
 
             for (int g = 0; g < generations.size() - 1; g++) {
                 historyEvent.generations().add(generations.get(g));
             }
-
             generations.clear();
             generations.add(latest);
         }
@@ -70,4 +55,3 @@ public class CalculationGenerationsArchiver {
         throw new RuntimeException("unknown event type " + event.getClass().getName());
     }
 }
-
