@@ -7,8 +7,8 @@ import org.models.State;
 
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 
 public final class PaymentEvent extends Event {
     public PaymentEvent(Instant valueTime, Instant createTime) {

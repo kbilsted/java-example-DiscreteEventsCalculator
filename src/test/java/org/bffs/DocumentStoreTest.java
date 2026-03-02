@@ -49,8 +49,8 @@ class DocumentStoreTest {
         var event1 = bffApi.createPaymentEvent(person, Instant.parse("2026-01-01T00:00:00Z"), 100);
         var event2 = bffApi.createPaymentEvent(person, Instant.parse("2026-02-01T00:00:00Z"), 110);
 
-        var timeline  = store.getTimeline(person, FetchParamenters.Latest);
-        List<Event> events = timeline.getEvents() ;
+        var timeline = store.getTimeline(person, FetchParamenters.Latest);
+        List<Event> events = timeline.getEvents();
         assertEquals(2, events.size());
 
         assertEquals(event2.eventId(), events.getLast().eventId(), "ensure ordering of value time");
