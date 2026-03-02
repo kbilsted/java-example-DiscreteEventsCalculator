@@ -1,9 +1,6 @@
 package org.models;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import org.storage.GlobalId;
 
@@ -23,7 +20,7 @@ public abstract class Event {
     private final Instant createTime;
     private final List<CalculationGeneration> generations;
 
-    protected Event(String name, Instant valueTime, Instant createTime) {
+    protected Event(@NonNull String name, @NonNull Instant valueTime, @NonNull Instant createTime) {
         this(GlobalId.next(), name, valueTime, createTime, new ArrayList<>());
     }
 

@@ -1,9 +1,6 @@
 package org.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.storage.GlobalId;
 
 import java.util.ArrayList;
@@ -23,7 +20,7 @@ public class Timeline {
         this(GlobalId.next(), new ArrayList<>(), new ArrayList<>());
     }
 
-    public void addEvent(Event event, EventInput input) {
+    public void addEvent(@NonNull Event event,@NonNull EventInput input) {
         int pos = 0;
         while (pos < events.size() && events.get(pos).valueTime().isBefore(event.valueTime()))
             pos++;
@@ -43,7 +40,7 @@ public class Timeline {
         }
     }
 
-    public State adjustEvent(int eventId, EventInput input) {
+    public State adjustEvent(int eventId,@NonNull EventInput input) {
         int pos = 0;
         while (pos < events.size() && events.get(pos).eventId() != eventId)
             pos++;

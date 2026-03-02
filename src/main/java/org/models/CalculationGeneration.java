@@ -1,4 +1,6 @@
 package org.models;
 
-public record CalculationGeneration(EventInput input, State state) {
+import lombok.NonNull;
+
+public record CalculationGeneration(@NonNull EventInput input,@NonNull State state) {
 }
