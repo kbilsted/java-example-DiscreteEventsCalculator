@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
+/** the api of the application */
 public class BffApi {
     private final DocumentStore store;
 
@@ -36,5 +37,14 @@ public class BffApi {
         timeline.add(event, input);
 
         return event;
+    }
+
+    public State AdjustPaymentEvent(Person person, int eventId, int newAmount){
+        Timeline timeline = store.timelines().get(person.id());
+        EventInput input = new EventInput(GlobalId.next(), Instant.now(),  new HashMap<>(Map.of("amount", newAmount)));
+
+        var state =timeline.adjust(eventId, input);
+
+        return  state;
     }
 }
