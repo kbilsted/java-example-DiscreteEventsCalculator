@@ -32,7 +32,7 @@ public class Timeline {
         // calculate event
         State state = pos == 0
                 ? new State(new HashMap<>())
-                : events.get(pos - 1).generations().getLast().state();
+                : getState(pos - 1);
         state = event.calculate(state, input);
 
         // re-calculate rest of event chain
@@ -54,7 +54,7 @@ public class Timeline {
         var event = events.get(pos);
         State state = pos == 0
                 ? new State(new HashMap<>())
-                : events.get(pos - 1).generations().getLast().state();
+                : getState(pos - 1);
         state = event.calculate(state, input);
 
         // re-calculate rest of event chain
@@ -64,6 +64,17 @@ public class Timeline {
             state = nextEvent.calculate(state, calcInput);
         }
         return state;
+    }
+
+    public State getState() {
+        if (events.isEmpty()) {
+            return new State(new HashMap<>());
+        }
+        return getState(events.size() - 1);
+    }
+
+    private State getState(int eventIndex) {
+        return events.get(eventIndex).generations().getLast().state();
     }
 
     public int countSumCalculationGenerations() {

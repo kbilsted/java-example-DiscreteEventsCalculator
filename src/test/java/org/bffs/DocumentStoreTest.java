@@ -49,12 +49,13 @@ class DocumentStoreTest {
         var event1 = bffApi.createPaymentEvent(person, Instant.parse("2026-01-01T00:00:00Z"), 100);
         var event2 = bffApi.createPaymentEvent(person, Instant.parse("2026-02-01T00:00:00Z"), 110);
 
-        List<Event> events = store.getTimeline(person, FetchParamenters.Latest).getEvents();
+        var timeline  = store.getTimeline(person, FetchParamenters.Latest);
+        List<Event> events = timeline.getEvents() ;
         assertEquals(2, events.size());
 
         assertEquals(event2.eventId(), events.getLast().eventId(), "ensure ordering of value time");
 
-        HashMap<Integer, Integer> paymentsPerYear = events.getLast().generations().getLast().state().paymentsPerYear();
+        HashMap<Integer, Integer> paymentsPerYear = store.getTimeline(person, FetchParamenters.Latest).getState().paymentsPerYear();
         assertNull(paymentsPerYear.get(2025), "no payments for 2025");
         assertEquals(210, paymentsPerYear.get(2026), "accumulate amount");
     }
@@ -72,36 +73,36 @@ class DocumentStoreTest {
         assertEquals(4, store.getTimeline(person, FetchParamenters.FullHistory).countSumCalculationGenerations());
     }
 
-
     @Test
-    void when_archiving_Then_all_historic_calculation_data_is_moved_to_history() {
+    void when_archiving_Then_all_historic_calculations_is_moved_to_history() {
         var event1 = bffApi.createPaymentEvent(person, Instant.parse("2026-01-01T00:00:00Z"), 100);
         var event2 = bffApi.createPaymentEvent(person, Instant.parse("2026-02-01T00:00:00Z"), 110);
         for (int i = 1; i < 100; i++)
             bffApi.adjustPaymentEvent(person, event1.eventId(), i);
 
-        // ensure no historic data
+        // precondition no historic data
         Timeline timeline = store.getTimeline(person, FetchParamenters.FullHistory);
-        int total2026 = timeline.getEvents().getLast().generations().getLast().state().paymentsPerYear().get(2026);
+        int total2026 = timeline.getState().paymentsPerYear().get(2026);
         assertEquals(200, timeline.countSumCalculationGenerations());
         assertEquals(0, timeline.getHistoricEvents().size());
 
+        // act
         var archiver = new CalculationGenerationsArchiver(store);
         archiver.Archive(person.id());
 
-        // ensure archiving has data
+        // assert archiving has data
         timeline = store.getTimeline(person, FetchParamenters.FullHistory);
         var history = timeline.getHistoricEvents();
         assertEquals(2, history.size());
         assertEquals(198, timeline.countSumHistoricCalculationGenerations());
 
-        // ensure historic data has been moved
+        // assert historic data has been moved
         timeline = store.getTimeline(person, FetchParamenters.Latest);
         assertEquals(2, timeline.countSumCalculationGenerations());
         assertEquals(0, timeline.countSumHistoricCalculationGenerations());
 
-        // ensure same calculation result
-        int newTotal2026 = timeline.getEvents().getLast().generations().getLast().state().paymentsPerYear().get(2026);
+        // assert same calculation result
+        int newTotal2026 = timeline.getState().paymentsPerYear().get(2026);
         assertEquals(total2026, newTotal2026);
     }
 }

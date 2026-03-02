@@ -62,6 +62,7 @@ public class DocumentStore {
                 yield timeLine;
             }
             case Latest -> {
+                timeLine.setHistoricEvents(new ArrayList<>());
                 yield timeLine;
             }
         };

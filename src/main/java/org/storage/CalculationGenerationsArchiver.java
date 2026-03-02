@@ -6,6 +6,7 @@ import org.models.events.PaymentEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+/** async archiver. assume the timeline is locked while operating */
 public class CalculationGenerationsArchiver {
     private final DocumentStore store;
 
