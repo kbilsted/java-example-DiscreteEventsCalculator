@@ -1,6 +1,9 @@
 package org.bffs;
 
 import org.models.*;
+import org.models.Event;
+import org.models.EventInput;
+import org.models.events.PaymentEvent;
 import org.storage.DocumentStore;
 import org.storage.GlobalId;
 
@@ -26,7 +29,7 @@ public class BffApi {
     }
 
     public Event createPaymentEvent(Person person, Instant valueTime, int amount) {
-        Event event = new Event("payment", valueTime, Instant.now());
+        Event event = new PaymentEvent(valueTime, Instant.now());
         EventInput input = new EventInput(GlobalId.next(), Instant.now(),  new HashMap<>(Map.of("amount", amount)));
 
         Timeline timeline = store.timelines().get(person.id());

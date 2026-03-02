@@ -11,17 +11,18 @@ public record Timeline(List<Event> events) {
 
     public void add(Event event, EventInput input) {
         int pos = 0;
-        while (pos < events.size() && events.get(pos).valueTime().isAfter(event.valueTime())) {
+        while (pos < events.size() && events.get(pos).valueTime().isBefore(event.valueTime())) {
             pos++;
         }
         events.add(pos, event);
 
+        // calculate event
         State state = pos == 0
                 ? new State(new HashMap<>())
                 : events.get(pos - 1).generations().getLast().state();
-
         state = event.calculate(state, input);
 
+        // re-calculate rest of event chain
         for (pos = pos + 1; pos < events.size(); pos++) {
             var nextEvent = events.get(pos);
             var calcInput = nextEvent.generations().getLast().input();

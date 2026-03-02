@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class DocumentStoreTest {
     DocumentStore store;
@@ -39,13 +40,16 @@ class DocumentStoreTest {
 
     @Test
     void createsPersonAndPaymentsEventWithInput() {
-        bffApi.createPaymentEvent(person, Instant.parse("2026-01-01T00:00:00Z"), 100);
-        bffApi.createPaymentEvent(person, Instant.parse("2026-02-01T00:00:00Z"), 110);
+        var event1= bffApi.createPaymentEvent(person, Instant.parse("2026-01-01T00:00:00Z"), 100);
+       var event2= bffApi.createPaymentEvent(person, Instant.parse("2026-02-01T00:00:00Z"), 110);
 
         List<Event> events = store.timelines().get(person.id()).events();
         assertEquals(2, events.size());
+
+        assertEquals(event2.eventId(), events.getLast().eventId(), "ensure ordering of value time");
+
         HashMap<Integer, Integer> paymentsPerYear = events.getLast().generations().getLast().state().paymentsPerYear();
-        assertEquals(null, paymentsPerYear.get(2025));
-        assertEquals(210, paymentsPerYear.get(2026));
+        assertNull(paymentsPerYear.get(2025), "no payments for 2025");
+        assertEquals(210, paymentsPerYear.get(2026), "accumulate amount");
     }
 }
