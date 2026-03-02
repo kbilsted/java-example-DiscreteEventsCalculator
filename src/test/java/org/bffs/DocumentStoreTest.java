@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.models.Event;
 import org.models.Person;
 import org.storage.DocumentStore;
+import org.storage.FetchParamenters;
 import org.storage.GlobalId;
 
 import java.time.Instant;
@@ -29,21 +30,24 @@ class DocumentStoreTest {
     }
 
     @Test
-    void createsPersonAndPaymentEventWithInput() {
+    void when_creating_a_timeline_for_unknown_person_Then_create_person_and_timeline() {
         bffApi.createPaymentEvent(person, Instant.parse("2026-01-01T00:00:00Z"), 100);
 
-        assertEquals(1, store.people().size());
-        assertEquals(1, store.timelines().size());
-        assertEquals("payment", store.timelines().get(person.id()).events().getLast().name());
-        assertEquals(100, store.timelines().get(person.id()).events().getLast().generations().getLast().input().inputs().get("amount"));
+        assertEquals(1, store.countPeople());
+
+        assertEquals(1, store.countTimelines());
+
+        List<Event> events = store.getTimeline(person.id(), FetchParamenters.Latest).getEvents();
+        assertEquals("payment", events.getLast().name());
+        assertEquals(100, events.getLast().generations().getLast().input().inputs().get("amount"));
     }
 
     @Test
-    void createsPersonAndPaymentsEventWithInput() {
-        var event1= bffApi.createPaymentEvent(person, Instant.parse("2026-01-01T00:00:00Z"), 100);
-       var event2= bffApi.createPaymentEvent(person, Instant.parse("2026-02-01T00:00:00Z"), 110);
+    void When_creating_two_events_Then_events_are_ordered_by_valuedate_and_are_calculated() {
+        var event1 = bffApi.createPaymentEvent(person, Instant.parse("2026-01-01T00:00:00Z"), 100);
+        var event2 = bffApi.createPaymentEvent(person, Instant.parse("2026-02-01T00:00:00Z"), 110);
 
-        List<Event> events = store.timelines().get(person.id()).events();
+        List<Event> events = store.getTimeline(person.id(), FetchParamenters.Latest).getEvents();
         assertEquals(2, events.size());
 
         assertEquals(event2.eventId(), events.getLast().eventId(), "ensure ordering of value time");

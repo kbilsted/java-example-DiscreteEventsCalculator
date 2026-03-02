@@ -1,15 +1,29 @@
 package org.models;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.storage.GlobalId;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public record Timeline(List<Event> events) {
+@Getter
+@Setter
+@ToString
+@AllArgsConstructor
+public class Timeline {
+    int id;
+    List<Event> events;
+    List<Event> historicEvents;
+
     public Timeline() {
-        this(new ArrayList<>());
+        this(GlobalId.next(), new ArrayList<>(), new ArrayList<>());
     }
 
-    public void add(Event event, EventInput input) {
+    public void addEvent(Event event, EventInput input) {
         int pos = 0;
         while (pos < events.size() && events.get(pos).valueTime().isBefore(event.valueTime()))
             pos++;
@@ -29,7 +43,7 @@ public record Timeline(List<Event> events) {
         }
     }
 
-    public State adjust(int eventId, EventInput input) {
+    public State adjustEvent(int eventId, EventInput input) {
         int pos = 0;
         while (pos < events.size() && events.get(pos).eventId() != eventId)
             pos++;
