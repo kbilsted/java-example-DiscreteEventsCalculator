@@ -40,7 +40,7 @@ public class BffApi {
         return event;
     }
 
-    public State AdjustPaymentEvent(Person person, int eventId, int newAmount){
+    public State adjustPaymentEvent(Person person, int eventId, int newAmount){
         Timeline timeline = store.getTimeline(person.id(), FetchParamenters.Latest);
         EventInput input = new EventInput(GlobalId.next(), Instant.now(),  new HashMap<>(Map.of("amount", newAmount)));
 

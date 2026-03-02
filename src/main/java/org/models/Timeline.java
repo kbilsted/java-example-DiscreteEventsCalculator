@@ -65,4 +65,10 @@ public class Timeline {
         }
         return state;
     }
+
+    public int countSumCalculationGenerations() {
+        return events.stream()
+                .mapToInt(x -> x.generations().size())
+                .sum();
+    }
 }
