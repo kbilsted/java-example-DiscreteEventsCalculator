@@ -7,11 +7,16 @@ import org.models.State;
 
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.HashMap;
 
 public final class PaymentEvent extends Event {
     public PaymentEvent(Instant valueTime, Instant createTime) {
         super("payment", valueTime, createTime);
+    }
+
+    public PaymentEvent(int eventId, Instant valueTime, Instant createTime, List<CalculationGeneration> generations) {
+        super(eventId, "payment", valueTime, createTime, generations);
     }
 
     @Override

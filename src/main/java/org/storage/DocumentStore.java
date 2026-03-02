@@ -22,9 +22,9 @@ import java.util.List;
 
 
 public class DocumentStore {
-    List<Person> people = new ArrayList<>();
-    HashMap</* person */Integer, Timeline> timelines = new HashMap<>();
-    HashMap</* person */ Integer, List<Event>> historicEvents = new HashMap<>();
+    private final List<Person> people = new ArrayList<>();
+    private final HashMap</* person */Integer, Timeline> timelines = new HashMap<>();
+    private final HashMap</* person */ Integer, List<Event>> historicEvents = new HashMap<>();
 
     private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
             .addModule(new JavaTimeModule())
@@ -38,20 +38,26 @@ public class DocumentStore {
                 .orElse(null);
     }
 
-    public int countPeople(){ return people.size();}
+    public int countPeople() {
+        return people.size();
+    }
 
-    public void addPerson(Person p){ people.add(p);}
+    public void addPerson(@NonNull Person p) {
+        people.add(p);
+    }
 
-    public void addTimeline(Person person, Timeline t){ timelines.put(person.id(), t);}
+    public void addTimeline(@NonNull Person person, Timeline t) {
+        timelines.put(person.id(), t);
+    }
 
-    public Timeline getTimeline(Person person, @NonNull FetchParamenters parameters) {
+    public Timeline getTimeline(@NonNull Person person, @NonNull FetchParamenters parameters) {
         var personId = person.id();
 
         var timeLine = timelines.get(personId);
 
         return switch (parameters) {
             case FullHistory -> {
-                var historic = historicEvents.get(personId);
+                var historic = historicEvents.computeIfAbsent(personId, k -> new ArrayList<>());
                 timeLine.setHistoricEvents(historic);
                 yield timeLine;
             }
@@ -61,7 +67,9 @@ public class DocumentStore {
         };
     }
 
-    public int countTimelines(){ return timelines.size();}
+    public int countTimelines() {
+        return timelines.size();
+    }
 
     public @NonNull HashMap<String, String> save() {
         HashMap<String, String> serialized = new HashMap<>();
