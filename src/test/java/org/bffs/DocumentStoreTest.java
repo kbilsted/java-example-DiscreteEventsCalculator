@@ -37,7 +37,7 @@ class DocumentStoreTest {
 
         assertEquals(1, store.countTimelines());
 
-        List<Event> events = store.getTimeline(person.id(), FetchParamenters.Latest).getEvents();
+        List<Event> events = store.getTimeline(person, FetchParamenters.Latest).getEvents();
         assertEquals("payment", events.getLast().name());
         assertEquals(100, events.getLast().generations().getLast().input().inputs().get("amount"));
     }
@@ -47,7 +47,7 @@ class DocumentStoreTest {
         var event1 = bffApi.createPaymentEvent(person, Instant.parse("2026-01-01T00:00:00Z"), 100);
         var event2 = bffApi.createPaymentEvent(person, Instant.parse("2026-02-01T00:00:00Z"), 110);
 
-        List<Event> events = store.getTimeline(person.id(), FetchParamenters.Latest).getEvents();
+        List<Event> events = store.getTimeline(person, FetchParamenters.Latest).getEvents();
         assertEquals(2, events.size());
 
         assertEquals(event2.eventId(), events.getLast().eventId(), "ensure ordering of value time");
@@ -62,11 +62,11 @@ class DocumentStoreTest {
         var event1 = bffApi.createPaymentEvent(person, Instant.parse("2026-01-01T00:00:00Z"), 100);
         var event2 = bffApi.createPaymentEvent(person, Instant.parse("2026-02-01T00:00:00Z"), 110);
 
-        assertEquals(2, store.getTimeline(person.id(), FetchParamenters.FullHistory).countSumCalculationGenerations());
+        assertEquals(2, store.getTimeline(person, FetchParamenters.FullHistory).countSumCalculationGenerations());
 
         var state = bffApi.adjustPaymentEvent(person, event1.eventId(), 90);
 
         assertEquals(200, state.paymentsPerYear().get(2026));
-        assertEquals(4, store.getTimeline(person.id(), FetchParamenters.FullHistory).countSumCalculationGenerations());
+        assertEquals(4, store.getTimeline(person, FetchParamenters.FullHistory).countSumCalculationGenerations());
     }
 }

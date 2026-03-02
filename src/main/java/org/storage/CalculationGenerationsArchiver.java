@@ -8,7 +8,8 @@ public class CalculationGenerationsArchiver {
     }
 
     public void Archive(int personId) {
-        var timeline = store.getTimeline(personId, FetchParamenters.FullHistory);
+        var person = store.getPerson(personId);
+        var timeline = store.getTimeline(person, FetchParamenters.FullHistory);
 
 
     }

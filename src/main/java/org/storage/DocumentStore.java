@@ -42,12 +42,16 @@ public class DocumentStore {
 
     public void addPerson(Person p){ people.add(p);}
 
-    public void addTimeline(int id, Timeline t){ timelines.put(id, t);}
-    public Timeline getTimeline(int id, @NonNull FetchParamenters parameters) {
-        var timeLine = timelines.get(id);
+    public void addTimeline(Person person, Timeline t){ timelines.put(person.id(), t);}
+
+    public Timeline getTimeline(Person person, @NonNull FetchParamenters parameters) {
+        var personId = person.id();
+
+        var timeLine = timelines.get(personId);
+
         return switch (parameters) {
             case FullHistory -> {
-                var historic = historicEvents.get(id);
+                var historic = historicEvents.get(personId);
                 timeLine.setHistoricEvents(historic);
                 yield timeLine;
             }
@@ -68,6 +72,7 @@ public class DocumentStore {
 
             serialized.put("people", toJson(people));
             serialized.put("timelines", toJson(timelines));
+            serialized.put("historicEvents", toJson(historicEvents));
             serialized.put("globalId", toJson(GlobalId.current()));
 
             for (var entry : serialized.entrySet()) {

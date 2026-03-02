@@ -25,7 +25,7 @@ public class BffApi {
         store.addPerson(person);
 
         var timeline = new Timeline();
-        store.addTimeline(person.id(), timeline);
+        store.addTimeline(person, timeline);
 
         return person;
     }
@@ -34,14 +34,14 @@ public class BffApi {
         Event event = new PaymentEvent(valueTime, Instant.now());
         EventInput input = new EventInput(GlobalId.next(), Instant.now(),  new HashMap<>(Map.of("amount", amount)));
 
-        Timeline timeline = store.getTimeline(person.id(), FetchParamenters.Latest);
+        Timeline timeline = store.getTimeline(person, FetchParamenters.Latest);
         timeline.addEvent(event, input);
 
         return event;
     }
 
     public State adjustPaymentEvent(Person person, int eventId, int newAmount){
-        Timeline timeline = store.getTimeline(person.id(), FetchParamenters.Latest);
+        Timeline timeline = store.getTimeline(person, FetchParamenters.Latest);
         EventInput input = new EventInput(GlobalId.next(), Instant.now(),  new HashMap<>(Map.of("amount", newAmount)));
 
         var state =timeline.adjustEvent(eventId, input);
