@@ -1,5 +1,10 @@
 package org.models;
 
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
 import org.storage.GlobalId;
 
 import java.time.Instant;
@@ -8,8 +13,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public record Event(int eventId, String name, Instant valueTime, Instant createTime,
-                    List<CalculationGeneration> generations) {
+@Getter
+@Accessors(fluent = true)
+@ToString
+@EqualsAndHashCode
+@AllArgsConstructor
+public class Event {
+    private final int eventId;
+    private final String name;
+    private final Instant valueTime;
+    private final Instant createTime;
+    private final List<CalculationGeneration> generations;
+
     public Event(String name, Instant valueTime, Instant createTime) {
         this(GlobalId.next(), name, valueTime, createTime, new ArrayList<>());
     }
@@ -28,6 +43,14 @@ public record Event(int eventId, String name, Instant valueTime, Instant createT
             return result;
         }
 
+        if(name.equals("disbursement"))
+        {
+            State state = new State(new HashMap<>(previousState.paymentsPerYear()));
+            generations.add(new CalculationGeneration(input, state));
+            return  state;
+        }
+
         throw new RuntimeException("Unknown event " + name);
     }
 }
+
