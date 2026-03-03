@@ -34,18 +34,19 @@ public class BffApi {
         Event event = new PaymentEvent(valueTime, Instant.now());
         EventInput input = new EventInput(GlobalId.next(), Instant.now(), new HashMap<>(Map.of("amount", amount)));
 
-        Timeline timeline = store.getTimeline(person, FetchParamenters.Latest);
-        timeline.addEvent(event, input);
-
-        return event;
+        return store.getTimeline(person, FetchParamenters.Latest)
+                .map(timeline -> {
+                    timeline.addEvent(event, input);
+                    return event;
+                })
+                .orElseThrow(() -> new RuntimeException("Timeline not found for person " + person.id()));
     }
 
     public State adjustPaymentEvent(Person person, int eventId, int newAmount) {
-        Timeline timeline = store.getTimeline(person, FetchParamenters.Latest);
         EventInput input = new EventInput(GlobalId.next(), Instant.now(), new HashMap<>(Map.of("amount", newAmount)));
 
-        var state = timeline.adjustEvent(eventId, input);
-
-        return state;
+        return store.getTimeline(person, FetchParamenters.Latest)
+                 .map(timeline -> timeline.adjustEvent(eventId, input))
+                .orElseThrow(()-> new RuntimeException("Timeline not found for person "+person.id()));
     }
 }

@@ -40,7 +40,7 @@ public class Timeline {
         }
     }
 
-    public State adjustEvent(int eventId,@NonNull EventInput input) {
+    public @NonNull State adjustEvent(int eventId,@NonNull EventInput input) {
         int pos = 0;
         while (pos < events.size() && events.get(pos).eventId() != eventId)
             pos++;
@@ -63,14 +63,14 @@ public class Timeline {
         return state;
     }
 
-    public State getState() {
+    public @NonNull State getState() {
         if (events.isEmpty()) {
             return new State(new HashMap<>());
         }
         return getState(events.size() - 1);
     }
 
-    private State getState(int eventIndex) {
+    private @NonNull State getState(int eventIndex) {
         return events.get(eventIndex).generations().getLast().state();
     }
 

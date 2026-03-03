@@ -14,8 +14,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 class DocumentStoreTest {
     DocumentStore store;
@@ -32,6 +31,15 @@ class DocumentStoreTest {
     }
 
     @Test
+    void When_querying_a_nonexisting_person_Then_fail() {
+        assertEquals("Timeline not found for person 3",
+                assertThrows(
+                        RuntimeException.class,
+                        () -> bffApi.createPaymentEvent(new Person("8"), Instant.MIN, 100))
+                        .getMessage());
+    }
+
+    @Test
     void when_creating_a_timeline_for_unknown_person_Then_create_person_and_timeline() {
         bffApi.createPaymentEvent(person, Instant.parse("2026-01-01T00:00:00Z"), 100);
 
@@ -39,7 +47,7 @@ class DocumentStoreTest {
 
         assertEquals(1, store.countTimelines());
 
-        List<Event> events = store.getTimeline(person, FetchParamenters.Latest).getEvents();
+        List<Event> events = store.getTimeline(person, FetchParamenters.Latest).get().getEvents();
         assertEquals("payment", events.getLast().name());
         assertEquals(100, events.getLast().generations().getLast().input().inputs().get("amount"));
     }
@@ -50,12 +58,12 @@ class DocumentStoreTest {
         var event2 = bffApi.createPaymentEvent(person, Instant.parse("2026-02-01T00:00:00Z"), 110);
 
         var timeline = store.getTimeline(person, FetchParamenters.Latest);
-        List<Event> events = timeline.getEvents();
+        List<Event> events = timeline.get().getEvents();
         assertEquals(2, events.size());
 
         assertEquals(event2.eventId(), events.getLast().eventId(), "ensure ordering of value time");
 
-        HashMap<Integer, Integer> paymentsPerYear = store.getTimeline(person, FetchParamenters.Latest).getState().paymentsPerYear();
+        HashMap<Integer, Integer> paymentsPerYear = store.getTimeline(person, FetchParamenters.Latest).get().getState().paymentsPerYear();
         assertNull(paymentsPerYear.get(2025), "no payments for 2025");
         assertEquals(210, paymentsPerYear.get(2026), "accumulate amount");
     }
@@ -65,12 +73,12 @@ class DocumentStoreTest {
         var event1 = bffApi.createPaymentEvent(person, Instant.parse("2026-01-01T00:00:00Z"), 100);
         var event2 = bffApi.createPaymentEvent(person, Instant.parse("2026-02-01T00:00:00Z"), 110);
 
-        assertEquals(2, store.getTimeline(person, FetchParamenters.FullHistory).countSumCalculationGenerations());
+        assertEquals(2, store.getTimeline(person, FetchParamenters.FullHistory).get().countSumCalculationGenerations());
 
         var state = bffApi.adjustPaymentEvent(person, event1.eventId(), 90);
 
         assertEquals(200, state.paymentsPerYear().get(2026));
-        assertEquals(4, store.getTimeline(person, FetchParamenters.FullHistory).countSumCalculationGenerations());
+        assertEquals(4, store.getTimeline(person, FetchParamenters.FullHistory).get().countSumCalculationGenerations());
     }
 
     @Test
@@ -81,7 +89,7 @@ class DocumentStoreTest {
             bffApi.adjustPaymentEvent(person, event1.eventId(), i);
 
         // precondition no historic data
-        Timeline timeline = store.getTimeline(person, FetchParamenters.FullHistory);
+        Timeline timeline = store.getTimeline(person, FetchParamenters.FullHistory).get();
         int total2026 = timeline.getState().paymentsPerYear().get(2026);
         assertEquals(200, timeline.countSumCalculationGenerations());
         assertEquals(0, timeline.getHistoricEvents().size());
@@ -91,13 +99,13 @@ class DocumentStoreTest {
         archiver.Archive(person.id());
 
         // assert archiving has data
-        timeline = store.getTimeline(person, FetchParamenters.FullHistory);
+        timeline = store.getTimeline(person, FetchParamenters.FullHistory).get();
         var history = timeline.getHistoricEvents();
         assertEquals(2, history.size());
         assertEquals(198, timeline.countSumHistoricCalculationGenerations());
 
         // assert historic data has been moved
-        timeline = store.getTimeline(person, FetchParamenters.Latest);
+        timeline = store.getTimeline(person, FetchParamenters.Latest).get();
         assertEquals(2, timeline.countSumCalculationGenerations());
         assertEquals(0, timeline.countSumHistoricCalculationGenerations());
 
