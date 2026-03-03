@@ -96,7 +96,7 @@ class DocumentStoreTest {
 
         // act
         var archiver = new CalculationGenerationsArchiver(store);
-        archiver.Archive(person.id());
+        archiver.archive(person.id());
 
         // assert archiving has data
         timeline = store.getTimeline(person, FetchParamenters.FullHistory).get();

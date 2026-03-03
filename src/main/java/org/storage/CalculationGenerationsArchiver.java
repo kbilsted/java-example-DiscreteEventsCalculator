@@ -10,7 +10,7 @@ import java.util.List;
  * async archiver. assume the timeline is locked while operating.
  * The archiver moves outdate data to another document in the document store making it
  * faster to fetch the data only relevant to most use cases.
- *
+ * <br>
  * we do this asynchronously, rather than during the save operation, to ensure we only fetch
  * historic data when really needed.
  */
@@ -21,7 +21,7 @@ public class CalculationGenerationsArchiver {
         this.store = store;
     }
 
-    public void Archive(int personId) {
+    public void archive(int personId) {
         store.getPerson(personId)
                 .flatMap(x -> store.getTimeline(x, FetchParamenters.FullHistory))
                 .flatMap(timeline -> {
