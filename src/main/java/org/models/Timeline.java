@@ -40,6 +40,7 @@ public class Timeline {
     }
 
     private State recalculateTimeline(int pos, Event event, EventInput input) {
+        // calculate event and store it in calculation-generation
         State state = pos == 0
                 ? new State(new HashMap<>())
                 : getState(pos - 1).deepClone();
@@ -47,7 +48,7 @@ public class Timeline {
         state = event.calculate(state, input);
         event.generations().add(new CalculationGeneration(input, state));
 
-        // re-calculate rest of event chain
+        // re-calculate rest of event chain and store them in calculation-generation
         for (pos = pos + 1; pos < events.size(); pos++) {
             var nextEvent = events.get(pos);
             var calcInput = nextEvent.generations().getLast().input();
