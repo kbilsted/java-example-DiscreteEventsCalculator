@@ -82,7 +82,7 @@ class DocumentStoreTest {
     }
 
     @Test
-    void when_archiving_Then_all_historic_calculations_is_moved_to_history() {
+    void when_archiving_Then_all_historic_calculations_are_moved_to_history() {
         var event1 = bffApi.createPaymentEvent(person, Instant.parse("2026-01-01T00:00:00Z"), 100);
         var event2 = bffApi.createPaymentEvent(person, Instant.parse("2026-02-01T00:00:00Z"), 110);
         for (int i = 1; i < 100; i++)

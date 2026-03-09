@@ -26,19 +26,7 @@ public class Timeline {
             pos++;
         events.add(pos, event);
 
-        // calculate event
-        State state = pos == 0
-                ? new State(new HashMap<>())
-                : getState(pos - 1).deepClone();
-        state = event.calculate(state, input);
-
-        // re-calculate rest of event chain
-        for (pos = pos + 1; pos < events.size(); pos++) {
-            var nextEvent = events.get(pos);
-            var calcInput = nextEvent.generations().getLast().input();
-            var clonedState = state.deepClone();
-            state = nextEvent.calculate(clonedState, calcInput);
-        }
+        recalculateTimeline(pos, event, input);
     }
 
     public @NonNull State adjustEvent(int eventId,@NonNull EventInput input) {
@@ -46,21 +34,28 @@ public class Timeline {
         while (pos < events.size() && events.get(pos).eventId() != eventId)
             pos++;
         if (pos == events.size())
-            throw new RuntimeException("eventid " + eventId + " not found");
+            throw new RuntimeException("event id %d not found".formatted(eventId));
 
-        // calculate event
-        var event = events.get(pos);
+        return recalculateTimeline(pos, events.get(pos), input);
+    }
+
+    private State recalculateTimeline(int pos, Event event, EventInput input)
+    {
         State state = pos == 0
                 ? new State(new HashMap<>())
                 : getState(pos - 1).deepClone();
+
         state = event.calculate(state, input);
+        event.generations().add(new CalculationGeneration(input, state));
 
         // re-calculate rest of event chain
         for (pos = pos + 1; pos < events.size(); pos++) {
             var nextEvent = events.get(pos);
             var calcInput = nextEvent.generations().getLast().input();
             var clonedState = state.deepClone();
+
             state = nextEvent.calculate(clonedState, calcInput);
+            nextEvent.generations().add(new CalculationGeneration(input, state));
         }
         return state;
     }

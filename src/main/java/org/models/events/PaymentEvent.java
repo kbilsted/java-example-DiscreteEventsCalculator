@@ -26,7 +26,6 @@ public final class PaymentEvent extends Event {
         sum = sum + (int) input.inputs().get("amount");
         state.paymentsPerYear().put(year, sum);
 
-        generations().add(new CalculationGeneration(input, state));
         return state;
     }
 }
