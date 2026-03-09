@@ -7,7 +7,6 @@ import org.models.State;
 
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.HashMap;
 import java.util.List;
 
 public final class PaymentEvent extends Event {
@@ -20,16 +19,14 @@ public final class PaymentEvent extends Event {
     }
 
     @Override
-    public State calculate(State previousState, EventInput input) {
+    public State calculate(State state, EventInput input) {
         var year = valueTime().atZone(ZoneId.systemDefault()).getYear();
 
-        var result = new State(new HashMap<>(previousState.paymentsPerYear()));
-        var sum = result.paymentsPerYear().getOrDefault(year, 0);
-
+        var sum = state.paymentsPerYear().getOrDefault(year, 0);
         sum = sum + (int) input.inputs().get("amount");
-        result.paymentsPerYear().put(year, sum);
+        state.paymentsPerYear().put(year, sum);
 
-        generations().add(new CalculationGeneration(input, result));
-        return result;
+        generations().add(new CalculationGeneration(input, state));
+        return state;
     }
 }

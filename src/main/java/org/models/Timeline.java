@@ -29,14 +29,15 @@ public class Timeline {
         // calculate event
         State state = pos == 0
                 ? new State(new HashMap<>())
-                : getState(pos - 1);
+                : getState(pos - 1).deepClone();
         state = event.calculate(state, input);
 
         // re-calculate rest of event chain
         for (pos = pos + 1; pos < events.size(); pos++) {
             var nextEvent = events.get(pos);
             var calcInput = nextEvent.generations().getLast().input();
-            state = nextEvent.calculate(state, calcInput);
+            var clonedState = state.deepClone();
+            state = nextEvent.calculate(clonedState, calcInput);
         }
     }
 
@@ -51,14 +52,15 @@ public class Timeline {
         var event = events.get(pos);
         State state = pos == 0
                 ? new State(new HashMap<>())
-                : getState(pos - 1);
+                : getState(pos - 1).deepClone();
         state = event.calculate(state, input);
 
         // re-calculate rest of event chain
         for (pos = pos + 1; pos < events.size(); pos++) {
             var nextEvent = events.get(pos);
             var calcInput = nextEvent.generations().getLast().input();
-            state = nextEvent.calculate(state, calcInput);
+            var clonedState = state.deepClone();
+            state = nextEvent.calculate(clonedState, calcInput);
         }
         return state;
     }

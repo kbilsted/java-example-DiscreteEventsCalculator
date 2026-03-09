@@ -6,4 +6,7 @@ import java.util.HashMap;
  * the accumulated state of a time-line calculation
  */
 public record State(HashMap<Integer, Integer> paymentsPerYear) {
+    public State deepClone() {
+        return new State(new HashMap<>(this.paymentsPerYear));
+    }
 }
