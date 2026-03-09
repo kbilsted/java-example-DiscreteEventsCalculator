@@ -24,7 +24,9 @@ public abstract class Event {
         this(GlobalId.next(), name, valueTime, createTime, new ArrayList<>());
     }
 
-    /** calculate the event with a deep cloned previous state S0, along with the event input
-     * to return a new state S1 */
+    /**
+     * calculate the event with a deep cloned previous state S0, along with the event input
+     * to return a new state S1
+     */
     public abstract State calculate(State state, EventInput input);
 }

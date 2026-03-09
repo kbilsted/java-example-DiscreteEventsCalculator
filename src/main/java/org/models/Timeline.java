@@ -20,7 +20,7 @@ public class Timeline {
         this(GlobalId.next(), new ArrayList<>(), new ArrayList<>());
     }
 
-    public void addEvent(@NonNull Event event,@NonNull EventInput input) {
+    public void addEvent(@NonNull Event event, @NonNull EventInput input) {
         int pos = 0;
         while (pos < events.size() && events.get(pos).valueTime().isBefore(event.valueTime()))
             pos++;
@@ -29,7 +29,7 @@ public class Timeline {
         recalculateTimeline(pos, event, input);
     }
 
-    public @NonNull State adjustEvent(int eventId,@NonNull EventInput input) {
+    public @NonNull State adjustEvent(int eventId, @NonNull EventInput input) {
         int pos = 0;
         while (pos < events.size() && events.get(pos).eventId() != eventId)
             pos++;
@@ -39,8 +39,7 @@ public class Timeline {
         return recalculateTimeline(pos, events.get(pos), input);
     }
 
-    private State recalculateTimeline(int pos, Event event, EventInput input)
-    {
+    private State recalculateTimeline(int pos, Event event, EventInput input) {
         State state = pos == 0
                 ? new State(new HashMap<>())
                 : getState(pos - 1).deepClone();

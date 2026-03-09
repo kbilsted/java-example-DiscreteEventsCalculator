@@ -46,7 +46,7 @@ public class BffApi {
         EventInput input = new EventInput(GlobalId.next(), Instant.now(), new HashMap<>(Map.of("amount", newAmount)));
 
         return store.getTimeline(person, FetchParamenters.Latest)
-                 .map(timeline -> timeline.adjustEvent(eventId, input))
-                .orElseThrow(()-> new RuntimeException("Timeline not found for person "+person.id()));
+                .map(timeline -> timeline.adjustEvent(eventId, input))
+                .orElseThrow(() -> new RuntimeException("Timeline not found for person " + person.id()));
     }
 }
