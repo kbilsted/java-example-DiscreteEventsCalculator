@@ -3,9 +3,11 @@ package org.models;
 import lombok.*;
 import org.storage.GlobalId;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Getter
 @Setter
@@ -43,10 +45,10 @@ public class Timeline {
         // calculate event and store it in calculation-generation
         State state = pos == 0
                 ? new State(new HashMap<>())
-                : getState(pos - 1).deepClone();
+                : events.get(pos - 1).getState().deepClone();
 
         state = event.calculate(state, input);
-        event.generations().add(new CalculationGeneration(input, state));
+        event.generations().add(new CalculationGeneration(Instant.now(), input, state));
 
         // re-calculate rest of event chain and store them in calculation-generation
         for (pos = pos + 1; pos < events.size(); pos++) {
@@ -55,7 +57,7 @@ public class Timeline {
             var clonedState = state.deepClone();
 
             state = nextEvent.calculate(clonedState, calcInput);
-            nextEvent.generations().add(new CalculationGeneration(input, state));
+            nextEvent.generations().add(new CalculationGeneration(Instant.now(), input, state));
         }
         return state;
     }
@@ -64,11 +66,11 @@ public class Timeline {
         if (events.isEmpty()) {
             return new State(new HashMap<>());
         }
-        return getState(events.size() - 1);
+        return events.getLast().getState();
     }
 
-    private @NonNull State getState(int eventIndex) {
-        return events.get(eventIndex).generations().getLast().state();
+    private Stream<Event> getAllStates() {
+        return Stream.concat(historicEvents.stream(), events.stream());
     }
 
     public int countSumCalculationGenerations() {

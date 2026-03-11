@@ -29,4 +29,8 @@ public abstract class Event {
      * to return a new state S1
      */
     public abstract State calculate(State state, EventInput input);
+
+    public State getState() {
+        return generations.getLast().state();
+    }
 }
