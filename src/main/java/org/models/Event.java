@@ -31,6 +31,9 @@ public abstract class Event {
     public abstract State calculate(State state, EventInput input);
 
     public State getState() {
+        if(generations.isEmpty())
+            throw new RuntimeException("called getState() before state calculation!");
+
         return generations.getLast().state();
     }
 }

@@ -15,11 +15,12 @@ import java.util.stream.Stream;
 @AllArgsConstructor
 public class Timeline {
     int id;
+    int storeGeneration;
     List<Event> events;
     List<Event> historicEvents;
 
     public Timeline() {
-        this(GlobalId.next(), new ArrayList<>(), new ArrayList<>());
+        this(GlobalId.next(), 0, new ArrayList<>(), new ArrayList<>());
     }
 
     public void addEvent(@NonNull Event event, @NonNull EventInput input) {

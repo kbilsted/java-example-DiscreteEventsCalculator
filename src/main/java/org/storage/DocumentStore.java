@@ -11,39 +11,56 @@ import java.util.List;
 import java.util.Optional;
 
 public class DocumentStore {
-    private final List<Person> people = new ArrayList<>();
+    private final HashMap</* person*/ Integer, Person> people = new HashMap<>();
     private final HashMap</* person */Integer, Timeline> timelines = new HashMap<>();
     private final HashMap</* person */ Integer, List<Event>> historicEvents = new HashMap<>();
+    private static final Object lock = new Object();
 
     public Optional<Person> getPerson(int id) {
-        return people.stream()
-                .filter(x -> x.id() == id)   // eller Objects.equals(x.id(), id)
-                .findFirst();
+        return Optional.ofNullable(people.get(id));
+    }
+
+    public void storePerson(@NonNull Person p) {
+        people.put(p.id(), p);
     }
 
     public int countPeople() {
         return people.size();
     }
 
-    public void addPerson(@NonNull Person p) {
-        people.add(p);
+    /** store using optimistic lock */
+    public boolean storeTimeline(@NonNull Person person, @NonNull Timeline t) {
+        synchronized (lock) {
+            Integer id = person.id();
+
+            if (!timelines.containsKey(id)) {
+                timelines.put(id, t);
+                return true;
+            }
+
+            if (timelines.get(id).getStoreGeneration() == t.getStoreGeneration()) {
+                t.setStoreGeneration(t.getStoreGeneration() + 1);
+                timelines.put(id, t);
+                return true;
+            }
+
+            return false;
+        }
     }
 
-    public void addTimeline(@NonNull Person person, Timeline t) {
-        timelines.put(person.id(), t);
-    }
-
+    /** fetch using fetch parameters */
     public Optional<Timeline> getTimeline(@NonNull Person person, @NonNull FetchParamenters parameters) {
         var personId = person.id();
 
-        return Optional.ofNullable(timelines.get(personId))
+        return Optional
+                .ofNullable(timelines.get(personId))
                 .map(timeLine -> {
                     switch (parameters) {
                         case FullHistory -> {
                             var historic = historicEvents.computeIfAbsent(personId, _ -> new ArrayList<>());
                             timeLine.setHistoricEvents(historic);
                         }
-                        case Latest -> timeLine.setHistoricEvents(new ArrayList<>());
+                        case Latest -> { }
                     }
                     return timeLine;
                 });
