@@ -1,4 +1,4 @@
-# javaDiscreteEventsCalculator
+# Discrete Events Calculator
 
 Java example for calculating events on a timeline ordered by a value date.
 

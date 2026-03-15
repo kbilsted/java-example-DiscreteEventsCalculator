@@ -3,9 +3,11 @@ package org.models;
 import lombok.*;
 import org.storage.GlobalId;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Getter
 @Setter
@@ -20,58 +22,55 @@ public class Timeline {
         this(GlobalId.next(), new ArrayList<>(), new ArrayList<>());
     }
 
-    public void addEvent(@NonNull Event event,@NonNull EventInput input) {
+    public void addEvent(@NonNull Event event, @NonNull EventInput input) {
         int pos = 0;
         while (pos < events.size() && events.get(pos).valueTime().isBefore(event.valueTime()))
             pos++;
         events.add(pos, event);
 
-        // calculate event
-        State state = pos == 0
-                ? new State(new HashMap<>())
-                : getState(pos - 1);
-        state = event.calculate(state, input);
-
-        // re-calculate rest of event chain
-        for (pos = pos + 1; pos < events.size(); pos++) {
-            var nextEvent = events.get(pos);
-            var calcInput = nextEvent.generations().getLast().input();
-            state = nextEvent.calculate(state, calcInput);
-        }
+        recalculateTimeline(pos, event, input);
     }
 
-    public State adjustEvent(int eventId,@NonNull EventInput input) {
+    public @NonNull State adjustEvent(int eventId, @NonNull EventInput input) {
         int pos = 0;
         while (pos < events.size() && events.get(pos).eventId() != eventId)
             pos++;
         if (pos == events.size())
-            throw new RuntimeException("eventid " + eventId + " not found");
+            throw new RuntimeException("event id %d not found".formatted(eventId));
 
-        // calculate event
-        var event = events.get(pos);
+        return recalculateTimeline(pos, events.get(pos), input);
+    }
+
+    private State recalculateTimeline(int pos, Event event, EventInput input) {
+        // calculate event and store it in calculation-generation
         State state = pos == 0
                 ? new State(new HashMap<>())
-                : getState(pos - 1);
-        state = event.calculate(state, input);
+                : events.get(pos - 1).getState().deepClone();
 
-        // re-calculate rest of event chain
+        state = event.calculate(state, input);
+        event.generations().add(new CalculationGeneration(Instant.now(), input, state));
+
+        // re-calculate rest of event chain and store them in calculation-generation
         for (pos = pos + 1; pos < events.size(); pos++) {
             var nextEvent = events.get(pos);
             var calcInput = nextEvent.generations().getLast().input();
-            state = nextEvent.calculate(state, calcInput);
+            var clonedState = state.deepClone();
+
+            state = nextEvent.calculate(clonedState, calcInput);
+            nextEvent.generations().add(new CalculationGeneration(Instant.now(), input, state));
         }
         return state;
     }
 
-    public State getState() {
+    public @NonNull State getState() {
         if (events.isEmpty()) {
             return new State(new HashMap<>());
         }
-        return getState(events.size() - 1);
+        return events.getLast().getState();
     }
 
-    private State getState(int eventIndex) {
-        return events.get(eventIndex).generations().getLast().state();
+    private Stream<Event> getAllStates() {
+        return Stream.concat(historicEvents.stream(), events.stream());
     }
 
     public int countSumCalculationGenerations() {

@@ -7,7 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * async archiver. assume the timeline is locked while operating
+ * async archiver. assume the timeline is locked while operating.
+ * The archiver moves outdate data to another document in the document store making it
+ * faster to fetch the data only relevant to most use cases.
+ * <br>
+ * we do this asynchronously, rather than during the save operation, to ensure we only fetch
+ * historic data when really needed.
  */
 public class CalculationGenerationsArchiver {
     private final DocumentStore store;
@@ -16,38 +21,36 @@ public class CalculationGenerationsArchiver {
         this.store = store;
     }
 
-    public void Archive(int personId) {
-        var person = store.getPerson(personId);
-        if (person == null)
-            return;
+    public void archive(int personId) {
+        store.getPerson(personId)
+                .flatMap(x -> store.getTimeline(x, FetchParamenters.FullHistory))
+                .flatMap(timeline -> {
+                    List<Event> history = timeline.getHistoricEvents();
 
-        var timeline = store.getTimeline(person, FetchParamenters.FullHistory);
-        if (timeline == null)
-            return;
+                    for (int i = 0; i < timeline.getEvents().size(); i++) {
+                        var event = timeline.getEvents().get(i);
 
-        List<Event> history = timeline.getHistoricEvents();
+                        // ensure event in history
+                        if (i >= history.size()) {
+                            history.add(copyEventWithoutGenerations(event));
+                        } else if (history.get(i).eventId() != event.eventId()) {
+                            history.add(i, copyEventWithoutGenerations(event));
+                        }
 
-        for (int i = 0; i < timeline.getEvents().size(); i++) {
-            var event = timeline.getEvents().get(i);
+                        // move all but latest generations
+                        var historyEvent = history.get(i);
+                        var generations = event.generations();
+                        var latest = generations.getLast();
 
-            // ensure event in history
-            if (i >= history.size()) {
-                history.add(copyEventWithoutGenerations(event));
-            } else if (history.get(i).eventId() != event.eventId()) {
-                history.add(i, copyEventWithoutGenerations(event));
-            }
+                        for (int g = 0; g < generations.size() - 1; g++) {
+                            historyEvent.generations().add(generations.get(g));
+                        }
+                        generations.clear();
+                        generations.add(latest);
+                    }
 
-            // move all but latest generations
-            var historyEvent = history.get(i);
-            var generations = event.generations();
-            var latest = generations.get(generations.size() - 1);
-
-            for (int g = 0; g < generations.size() - 1; g++) {
-                historyEvent.generations().add(generations.get(g));
-            }
-            generations.clear();
-            generations.add(latest);
-        }
+                    return java.util.Optional.empty();
+                });
     }
 
     private static Event copyEventWithoutGenerations(Event event) {
