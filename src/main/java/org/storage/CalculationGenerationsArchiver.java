@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * async archiver. assume the timeline is locked while operating.
  * The archiver moves outdate data to another document in the document store making it
  * faster to fetch the data only relevant to most use cases.
  * <br>
@@ -21,36 +20,44 @@ public class CalculationGenerationsArchiver {
         this.store = store;
     }
 
-    public void archive(int personId) {
-        store.getPerson(personId)
-                .flatMap(x -> store.getTimeline(x, FetchParamenters.FullHistory))
-                .flatMap(timeline -> {
-                    List<Event> history = timeline.getHistoricEvents();
+    public int archive(int personId) {
+        var person = store.getPerson(personId)
+                .orElseThrow(() -> new RuntimeException("person id not found"));
 
-                    for (int i = 0; i < timeline.getEvents().size(); i++) {
-                        var event = timeline.getEvents().get(i);
+        var timeline = store.getTimeline(person, FetchParamenters.FullHistory)
+                .orElseThrow(() -> new RuntimeException("No timeline found"));
 
-                        // ensure event in history
-                        if (i >= history.size()) {
-                            history.add(copyEventWithoutGenerations(event));
-                        } else if (history.get(i).eventId() != event.eventId()) {
-                            history.add(i, copyEventWithoutGenerations(event));
-                        }
+        var history = timeline.getHistoricEvents();
+        int archivedCount = 0;
 
-                        // move all but latest generations
-                        var historyEvent = history.get(i);
-                        var generations = event.generations();
-                        var latest = generations.getLast();
+        for (int i = 0; i < timeline.getEvents().size(); i++) {
+            Event event = timeline.getEvents().get(i);
 
-                        for (int g = 0; g < generations.size() - 1; g++) {
-                            historyEvent.generations().add(generations.get(g));
-                        }
-                        generations.clear();
-                        generations.add(latest);
-                    }
+            // ensure event exist in history
+            if (i >= history.size()) {
+                history.add(copyEventWithoutGenerations(event));
+            } else if (history.get(i).eventId() != event.eventId()) {
+                history.add(i, copyEventWithoutGenerations(event));
+            }
 
-                    return java.util.Optional.empty();
-                });
+            // move all but latest generation
+            Event historyEvent = history.get(i);
+            var generations = event.generations();
+            var latest = generations.getLast();
+
+            for (int g = 0; g < generations.size() - 1; g++) {
+                historyEvent.generations().add(generations.get(g));
+                archivedCount++;
+            }
+            generations.clear();
+            generations.add(latest);
+        }
+
+        if (!store.storeTimeline(person, timeline)) {
+            throw new RuntimeException("Timeline was modified while archiving. Cannot archive");
+        }
+
+        return archivedCount;
     }
 
     private static Event copyEventWithoutGenerations(Event event) {

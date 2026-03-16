@@ -6,7 +6,6 @@ import org.storage.GlobalId;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.stream.Stream;
 
 @Getter
@@ -16,8 +15,8 @@ import java.util.stream.Stream;
 public class Timeline {
     int id;
     int storeGeneration;
-    List<Event> events;
-    List<Event> historicEvents;
+    ArrayList<Event> events;
+    ArrayList<Event> historicEvents;
 
     public Timeline() {
         this(GlobalId.next(), 0, new ArrayList<>(), new ArrayList<>());

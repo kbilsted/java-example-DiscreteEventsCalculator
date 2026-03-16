@@ -1,5 +1,7 @@
 package org.models.events;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.models.CalculationGeneration;
 import org.models.Event;
 import org.models.EventInput;
@@ -14,7 +16,13 @@ public final class PaymentEvent extends Event {
         super("payment", valueTime, createTime);
     }
 
-    public PaymentEvent(int eventId, Instant valueTime, Instant createTime, List<CalculationGeneration> generations) {
+    @JsonCreator
+    public PaymentEvent(
+            @JsonProperty("eventId") int eventId,
+            @JsonProperty("valueTime") Instant valueTime,
+            @JsonProperty("createTime") Instant createTime,
+            @JsonProperty("generations") List<CalculationGeneration> generations
+    ) {
         super(eventId, "payment", valueTime, createTime, generations);
     }
 
