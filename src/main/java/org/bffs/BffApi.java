@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * the api of the application
+ * Backend For Frontend - the api of the application
  */
 public class BffApi {
     private final DocumentStore documentStore;
@@ -31,7 +31,7 @@ public class BffApi {
     }
 
     public Event createPaymentEvent(Person person, Instant valueTime, int amount) {
-        Event event = new PaymentEvent(valueTime, Instant.now());
+        Event event = new Event(EventType.PAYMENT, valueTime, Instant.now());
         EventInput input = new EventInput(GlobalId.next(), Instant.now(), new HashMap<>(Map.of("amount", amount)));
 
         return documentStore

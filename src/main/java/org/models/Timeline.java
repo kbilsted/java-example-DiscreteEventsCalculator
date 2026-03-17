@@ -69,7 +69,7 @@ public class Timeline {
         return events.getLast().getState();
     }
 
-    private Stream<Event> getAllStates() {
+    private Stream<Event> getAllEvents() {
         return Stream.concat(historicEvents.stream(), events.stream());
     }
 
@@ -83,5 +83,16 @@ public class Timeline {
         return historicEvents.stream()
                 .mapToInt(x -> x.generations().size())
                 .sum();
+    }
+
+    public Timeline deepClone() {
+        var result = new Timeline(id, storeGeneration, new ArrayList<>(events.size()), new ArrayList<>(historicEvents.size()));
+        for (var e : events)
+            result.events.add(e.deepClone());
+
+        for (var e : historicEvents)
+            result.historicEvents.add(e.deepClone());
+
+        return result;
     }
 }

@@ -35,9 +35,13 @@ public class CalculationGenerationsArchiver {
 
             // ensure event exist in history
             if (i >= history.size()) {
-                history.add(copyEventWithoutGenerations(event));
+                var clone = event.deepClone();
+                clone.generations().clear();
+                history.add(clone);
             } else if (history.get(i).eventId() != event.eventId()) {
-                history.add(i, copyEventWithoutGenerations(event));
+                var clone = event.deepClone();
+                clone.generations().clear();
+                history.add(i, clone);
             }
 
             // move all but latest generation
@@ -58,13 +62,5 @@ public class CalculationGenerationsArchiver {
         }
 
         return archivedCount;
-    }
-
-    private static Event copyEventWithoutGenerations(Event event) {
-        if (event instanceof PaymentEvent) {
-            return new PaymentEvent(event.eventId(), event.valueTime(), event.createTime(), new ArrayList<>());
-        }
-
-        throw new RuntimeException("unknown event type " + event.getClass().getName());
     }
 }

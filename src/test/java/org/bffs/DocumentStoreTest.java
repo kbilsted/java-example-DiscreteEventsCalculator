@@ -3,6 +3,7 @@ package org.bffs;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.models.Event;
+import org.models.EventType;
 import org.models.Person;
 import org.models.Timeline;
 import org.storage.CalculationGenerationsArchiver;
@@ -48,7 +49,7 @@ class DocumentStoreTest {
         assertEquals(1, store.countTimelines());
 
         List<Event> events = store.getTimeline(person, FetchParamenters.Latest).get().getEvents();
-        assertEquals("payment", events.getLast().name());
+        assertEquals(EventType.PAYMENT, events.getLast().type());
         assertEquals(100, events.getLast().generations().getLast().input().inputs().get("amount"));
     }
 
