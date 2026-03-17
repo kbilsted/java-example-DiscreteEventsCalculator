@@ -1,10 +1,8 @@
 package org.storage;
 
 import org.models.Event;
-import org.models.events.PaymentEvent;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * The archiver moves outdate data to another document in the document store making it
@@ -14,17 +12,19 @@ import java.util.List;
  * historic data when really needed.
  */
 public class CalculationGenerationsArchiver {
-    private final DocumentStore store;
+    private final PersonRepository personRepository;
+    private final TimelineRepository timelineRepository;
 
-    public CalculationGenerationsArchiver(DocumentStore store) {
-        this.store = store;
+    public CalculationGenerationsArchiver(PersonRepository personRepository, TimelineRepository timelineRepository) {
+        this.personRepository = personRepository;
+        this.timelineRepository = timelineRepository;
     }
 
     public int archive(int personId) {
-        var person = store.getPerson(personId)
+        var person = personRepository.getPerson(personId)
                 .orElseThrow(() -> new RuntimeException("person id not found"));
 
-        var timeline = store.getTimeline(person, FetchParamenters.FullHistory)
+        var timeline = timelineRepository.getTimeline(person, FetchParamenters.FullHistory)
                 .orElseThrow(() -> new RuntimeException("No timeline found"));
 
         var history = timeline.getHistoricEvents();
@@ -57,7 +57,7 @@ public class CalculationGenerationsArchiver {
             generations.add(latest);
         }
 
-        if (!store.storeTimeline(person, timeline)) {
+        if (!timelineRepository.storeTimeline(person, timeline)) {
             throw new RuntimeException("Timeline was modified while archiving. Cannot archive");
         }
 

@@ -1,10 +1,10 @@
 package org.bffs;
 
 import org.models.*;
-import org.models.events.PaymentEvent;
-import org.storage.DocumentStore;
+import org.storage.PersonRepository;
 import org.storage.FetchParamenters;
 import org.storage.GlobalId;
+import org.storage.TimelineRepository;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -14,18 +14,20 @@ import java.util.Map;
  * Backend For Frontend - the api of the application
  */
 public class BffApi {
-    private final DocumentStore documentStore;
+    private final PersonRepository personRepository;
+    private final TimelineRepository timelineRepository;
 
-    public BffApi(DocumentStore documentStore) {
-        this.documentStore = documentStore;
+    public BffApi(PersonRepository personRepository, TimelineRepository timelineRepository) {
+        this.personRepository = personRepository;
+        this.timelineRepository = timelineRepository;
     }
 
     public Person createPerson(String name) {
         var person = new Person(GlobalId.next(), name);
-        documentStore.storePerson(person);
+        personRepository.storePerson(person);
 
         var timeline = new Timeline();
-        documentStore.storeTimeline(person, timeline);
+        timelineRepository.storeTimeline(person, timeline);
 
         return person;
     }
@@ -34,11 +36,11 @@ public class BffApi {
         Event event = new Event(EventType.PAYMENT, valueTime, Instant.now());
         EventInput input = new EventInput(GlobalId.next(), Instant.now(), new HashMap<>(Map.of("amount", amount)));
 
-        return documentStore
+        return timelineRepository
                 .getTimeline(person, FetchParamenters.Latest)
                 .map(timeline -> {
                     timeline.addEvent(event, input);
-                    if (!documentStore.storeTimeline(person, timeline))
+                    if (!timelineRepository.storeTimeline(person, timeline))
                         throw new RuntimeException("Timeline was modified while adding event. Cannot add event");
                     return event;
                 })
@@ -48,11 +50,11 @@ public class BffApi {
     public State adjustPaymentEvent(Person person, int eventId, int newAmount) {
         EventInput input = new EventInput(GlobalId.next(), Instant.now(), new HashMap<>(Map.of("amount", newAmount)));
 
-        return documentStore
+        return timelineRepository
                 .getTimeline(person, FetchParamenters.Latest)
                 .map(timeline -> {
                     var state = timeline.adjustEvent(eventId, input);
-                    if (!documentStore.storeTimeline(person, timeline))
+                    if (!timelineRepository.storeTimeline(person, timeline))
                         throw new RuntimeException("Timeline was modified while adjusting event. Cannot adjust event");
                     return state;
                 })

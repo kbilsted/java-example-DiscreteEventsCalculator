@@ -10,6 +10,8 @@ import org.storage.CalculationGenerationsArchiver;
 import org.storage.DocumentStore;
 import org.storage.FetchParamenters;
 import org.storage.GlobalId;
+import org.storage.PersonRepository;
+import org.storage.TimelineRepository;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -19,6 +21,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class DocumentStoreTest {
     DocumentStore store;
+    PersonRepository personRepository;
+    TimelineRepository timelineRepository;
     BffApi bffApi;
     Person person;
 
@@ -26,7 +30,9 @@ class DocumentStoreTest {
     void setUp() {
         GlobalId.reset(1);
         store = new DocumentStore();
-        bffApi = new BffApi(store);
+        personRepository = new PersonRepository(store);
+        timelineRepository = new TimelineRepository(store);
+        bffApi = new BffApi(personRepository, timelineRepository);
 
         person = bffApi.createPerson("anders and");
     }
@@ -44,11 +50,11 @@ class DocumentStoreTest {
     void when_creating_a_timeline_for_unknown_person_Then_create_person_and_timeline() {
         bffApi.createPaymentEvent(person, Instant.parse("2026-01-01T00:00:00Z"), 100);
 
-        assertEquals(1, store.countPeople());
+        assertEquals(1, personRepository.countPeople());
 
-        assertEquals(1, store.countTimelines());
+        assertEquals(1, timelineRepository.countTimelines());
 
-        List<Event> events = store.getTimeline(person, FetchParamenters.Latest).get().getEvents();
+        List<Event> events = timelineRepository.getTimeline(person, FetchParamenters.Latest).get().getEvents();
         assertEquals(EventType.PAYMENT, events.getLast().type());
         assertEquals(100, events.getLast().generations().getLast().input().inputs().get("amount"));
     }
@@ -58,13 +64,13 @@ class DocumentStoreTest {
         var event1 = bffApi.createPaymentEvent(person, Instant.parse("2026-01-01T00:00:00Z"), 100);
         var event2 = bffApi.createPaymentEvent(person, Instant.parse("2026-02-01T00:00:00Z"), 110);
 
-        var timeline = store.getTimeline(person, FetchParamenters.Latest);
+        var timeline = timelineRepository.getTimeline(person, FetchParamenters.Latest);
         List<Event> events = timeline.get().getEvents();
         assertEquals(2, events.size());
 
         assertEquals(event2.eventId(), events.getLast().eventId(), "ensure ordering of value time");
 
-        HashMap<Integer, Integer> paymentsPerYear = store.getTimeline(person, FetchParamenters.Latest).get().getState().paymentsPerYear();
+        HashMap<Integer, Integer> paymentsPerYear = timelineRepository.getTimeline(person, FetchParamenters.Latest).get().getState().paymentsPerYear();
         assertNull(paymentsPerYear.get(2025), "no payments for 2025");
         assertEquals(210, paymentsPerYear.get(2026), "accumulate amount");
     }
@@ -74,12 +80,12 @@ class DocumentStoreTest {
         var event1 = bffApi.createPaymentEvent(person, Instant.parse("2026-01-01T00:00:00Z"), 100);
         var event2 = bffApi.createPaymentEvent(person, Instant.parse("2026-02-01T00:00:00Z"), 110);
 
-        assertEquals(2, store.getTimeline(person, FetchParamenters.FullHistory).get().countSumCalculationGenerations());
+        assertEquals(2, timelineRepository.getTimeline(person, FetchParamenters.FullHistory).get().countSumCalculationGenerations());
 
         var state = bffApi.adjustPaymentEvent(person, event1.eventId(), 90);
 
         assertEquals(200, state.paymentsPerYear().get(2026));
-        assertEquals(4, store.getTimeline(person, FetchParamenters.FullHistory).get().countSumCalculationGenerations());
+        assertEquals(4, timelineRepository.getTimeline(person, FetchParamenters.FullHistory).get().countSumCalculationGenerations());
     }
 
     @Test
@@ -90,23 +96,23 @@ class DocumentStoreTest {
             bffApi.adjustPaymentEvent(person, event1.eventId(), i);
 
         // precondition no historic data
-        Timeline timeline = store.getTimeline(person, FetchParamenters.FullHistory).get();
+        Timeline timeline = timelineRepository.getTimeline(person, FetchParamenters.FullHistory).get();
         int total2026 = timeline.getState().paymentsPerYear().get(2026);
         assertEquals(200, timeline.countSumCalculationGenerations());
         assertEquals(0, timeline.getHistoricEvents().size());
 
         // act
-        var archiver = new CalculationGenerationsArchiver(store);
+        var archiver = new CalculationGenerationsArchiver(personRepository, timelineRepository);
         archiver.archive(person.id());
 
         // assert archiving has data
-        timeline = store.getTimeline(person, FetchParamenters.FullHistory).get();
+        timeline = timelineRepository.getTimeline(person, FetchParamenters.FullHistory).get();
         var history = timeline.getHistoricEvents();
         assertEquals(2, history.size());
         assertEquals(198, timeline.countSumHistoricCalculationGenerations());
 
         // assert historic data has been moved
-        timeline = store.getTimeline(person, FetchParamenters.Latest).get();
+        timeline = timelineRepository.getTimeline(person, FetchParamenters.Latest).get();
         assertEquals(2, timeline.countSumCalculationGenerations());
         assertEquals(0, timeline.countSumHistoricCalculationGenerations());
 
