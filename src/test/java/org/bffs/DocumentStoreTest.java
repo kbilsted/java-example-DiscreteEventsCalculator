@@ -103,7 +103,10 @@ class DocumentStoreTest {
 
         // act
         var archiver = new CalculationGenerationsArchiver(personRepository, timelineRepository);
-        archiver.archive(person.id());
+        int archiveCount = archiver.archiveAll();
+
+        // assert work has been made
+        assertEquals(198, archiveCount);
 
         // assert archiving has data
         timeline = timelineRepository.getTimeline(person, FetchParamenters.FullHistory).get();
@@ -111,7 +114,7 @@ class DocumentStoreTest {
         assertEquals(2, history.size());
         assertEquals(198, timeline.countSumHistoricCalculationGenerations());
 
-        // assert historic data has been moved
+        // assert simple fetch
         timeline = timelineRepository.getTimeline(person, FetchParamenters.Latest).get();
         assertEquals(2, timeline.countSumCalculationGenerations());
         assertEquals(0, timeline.countSumHistoricCalculationGenerations());

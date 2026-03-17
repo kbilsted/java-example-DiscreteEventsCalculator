@@ -2,7 +2,7 @@ package org.storage;
 
 import org.models.Event;
 
-import java.util.ArrayList;
+import java.util.Optional;
 
 /**
  * The archiver moves outdate data to another document in the document store making it
@@ -20,7 +20,25 @@ public class CalculationGenerationsArchiver {
         this.timelineRepository = timelineRepository;
     }
 
-    public int archive(int personId) {
+    public int archiveAll() {
+        int count = 0;
+        Optional<Integer> id;
+
+        while (true) {
+            id = timelineRepository.getArchivableId();
+
+            if (id.isEmpty())
+                break;
+
+            count += archiveSpecific(id.get());
+
+            timelineRepository.storeArchivableTimeline(id.get(), false);
+        }
+
+        return count;
+    }
+
+    public int archiveSpecific(int personId) {
         var person = personRepository.getPerson(personId)
                 .orElseThrow(() -> new RuntimeException("person id not found"));
 
@@ -57,7 +75,7 @@ public class CalculationGenerationsArchiver {
             generations.add(latest);
         }
 
-        if (!timelineRepository.storeTimeline(person, timeline)) {
+        if (!timelineRepository.storeTimeline(person, timeline, TimelineRepository.SaveOptions.None)) {
             throw new RuntimeException("Timeline was modified while archiving. Cannot archive");
         }
 

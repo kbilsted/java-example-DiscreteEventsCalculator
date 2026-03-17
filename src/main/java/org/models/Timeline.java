@@ -1,11 +1,13 @@
 package org.models;
 
 import lombok.*;
+import org.storage.FetchParamenters;
 import org.storage.GlobalId;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 @Getter
@@ -17,9 +19,10 @@ public class Timeline {
     int storeGeneration;
     ArrayList<Event> events;
     ArrayList<Event> historicEvents;
+    Optional<FetchParamenters> fetchParamenters;
 
     public Timeline() {
-        this(GlobalId.next(), 0, new ArrayList<>(), new ArrayList<>());
+        this(GlobalId.next(), 0, new ArrayList<>(), new ArrayList<>(), Optional.empty());
     }
 
     public void addEvent(@NonNull Event event, @NonNull EventInput input) {
@@ -86,7 +89,7 @@ public class Timeline {
     }
 
     public Timeline deepClone() {
-        var result = new Timeline(id, storeGeneration, new ArrayList<>(events.size()), new ArrayList<>(historicEvents.size()));
+        var result = new Timeline(id, storeGeneration, new ArrayList<>(events.size()), new ArrayList<>(historicEvents.size()), fetchParamenters);
         for (var e : events)
             result.events.add(e.deepClone());
 

@@ -15,11 +15,19 @@ public class TimelineRepository {
         this.store = store;
     }
 
+    public enum SaveOptions {
+        None, MarkForArchiving
+    }
+
+    public boolean storeTimeline(@NonNull Person person, @NonNull Timeline toStoreTimeline) {
+        return storeTimeline(person, toStoreTimeline, SaveOptions.MarkForArchiving);
+    }
+
     /**
      * store using optimistic lock
      */
-    public boolean storeTimeline(@NonNull Person person, @NonNull Timeline toStoreTimeline) {
-        synchronized (store.lock) {
+    public boolean storeTimeline(@NonNull Person person, @NonNull Timeline toStoreTimeline, TimelineRepository.SaveOptions saveOptions) {
+        synchronized (DocumentStore.lock) {
             Integer id = person.id();
 
             var lookup = store.timelines.get(id);
@@ -32,11 +40,23 @@ public class TimelineRepository {
                 return false;
             }
 
-            store.historicEvents.put(id, toStoreTimeline.getHistoricEvents());
+            toStoreTimeline.getFetchParamenters().ifPresent(p -> {
+                if (p == FetchParamenters.FullHistory) {
+                    store.historicEvents.put(id, toStoreTimeline.getHistoricEvents());
+                }
+            });
+
+            // ensure we never store historic entries since they are stored in a different document
             toStoreTimeline.setHistoricEvents(new ArrayList<>());
 
+            // optimistic lock versioning
             toStoreTimeline.setStoreGeneration(toStoreTimeline.getStoreGeneration() + 1);
+
             store.timelines.put(id, toStoreTimeline);
+
+            if (saveOptions == SaveOptions.MarkForArchiving)
+                store.archivableTimelines.add(id);
+
             return true;
         }
     }
@@ -52,6 +72,7 @@ public class TimelineRepository {
                 .map(timeline -> {
                     // deep clone to simulate fetching from real storage
                     timeline = timeline.deepClone();
+                    timeline.setFetchParamenters(Optional.of(parameters));
 
                     switch (parameters) {
                         case FullHistory -> timeline.setHistoricEvents(getHistoricEvents(person));
@@ -76,5 +97,16 @@ public class TimelineRepository {
 
     public int countTimelines() {
         return store.timelines.size();
+    }
+
+    public Optional<Integer> getArchivableId() {
+        return store.archivableTimelines.stream().findAny();
+    }
+
+    public void storeArchivableTimeline(Integer id, boolean isArchivable) {
+        if (isArchivable)
+            store.archivableTimelines.add(id);
+        else
+            store.archivableTimelines.remove(id);
     }
 }
